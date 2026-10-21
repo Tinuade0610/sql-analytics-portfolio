@@ -31,9 +31,9 @@ its finding below it, so the reasoning is easy to follow.
 | Lowest category | Beauty, 119,683.21 (about 11.5%) |
 | Busiest day | 2026-01-30, 183 new sessions (average day: about 149) |
 
-- App vs. web: app sessions convert about 27.5% better than web (5.8
-  percentage points). Each channel has roughly 6,000 sessions, so the gap is
-  unlikely to be noise. 
+- App vs web: App sessions had a 26.74% conversion rate, compared with 20.98% for web, a difference of 5.8 percentage points.
+  This is an observed association; further testing and investigation of traffic mix would be needed to assess its robustness
+  and possible explanations.
 - Categories are in a tight race. Sports leads Beauty by only about 18%.
   Purchase counts are nearly level (506 to 545 per category, with Groceries
   highest at 545), so revenue differences come mostly from average purchase
