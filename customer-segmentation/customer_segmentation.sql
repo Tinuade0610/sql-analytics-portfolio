@@ -1,9 +1,9 @@
 /* =====================================================================
-   PROJECT 2: CUSTOMER SEGMENTATION BY SPEND AND ACTIVITY
+   CUSTOMER SEGMENTATION BY SPEND AND ACTIVITY
    File:     customer_segmentation.sql
    Dialect:  PostgreSQL (run on Supabase)
    Table:    retail_user_behaviour (renamed from retail_user_behavior_100k)
-   Source:   Kaggle [URL, creator and license: add from the dataset page]
+   Source:   Kaggle 
    Window:   2026-01-01 08:15 UTC to 2026-05-01 07:57 UTC
              (about four months, first and last days are partial)
    Currency: unknown
@@ -29,10 +29,8 @@
    ===================================================================== */
 
 
-/* =====================================================================
-   PART 1: DATA PROFILING
-   Get to know the table before calculating any KPI.
-   ===================================================================== */
+  -- PART 1: DATA PROFILING
+  -- Get to know the table before calculating any KPI.
 
 -- P1 | QUESTION: What does one row represent, and are user IDs reliable?
 SELECT
@@ -41,7 +39,8 @@ SELECT
     COUNT(DISTINCT user_id) AS distinct_users,
     COUNT(*) - COUNT(user_id) AS null_user_ids
 FROM retail_user_behaviour;
--- FINDING: 108,584 rows but only 18,000 distinct sessions, so a row is not a session (roughly 6 rows per session). There are 6,806 distinct users and no NULL user IDs.
+-- FINDING: 108,584 rows but only 18,000 distinct sessions, so a row is not a session (roughly 6 rows per session).
+-- There are 6,806 distinct users and no NULL user IDs.
 
 
 -- P2 | QUESTION: What do the rows inside one session look like, in time order?
@@ -55,7 +54,8 @@ WHERE session_id = (
     LIMIT 1
 )
 ORDER BY timestamp_utc;
--- FINDING: In session S0013795, each row is an event (view, click, wishlist, drop), numbered by event_index from 1 to 8, matching session_length = 8. User, channel, device, region and traffic source stay the same across the session, while action, product, price and time spent change. Price repeats on every event for the same product (495.08 on five rows), so it's a listed price, not a purchase amount.
+-- FINDING: In session S0013795, each row is an event (view, click, wishlist, drop), numbered by event_index from 1 to 8, matching session_length = 8.
+-- User, channel, device, region and traffic source stay the same across the session, while action, product, price and time spent change. Price repeats on every event for the same product (495.08 on five rows), so it's a listed price, not a purchase amount.
 
 
 -- P3 | QUESTION: What actions exist, and where does is_conversion = 1 appear?
@@ -66,7 +66,8 @@ SELECT
 FROM retail_user_behaviour
 GROUP BY user_action, is_conversion
 ORDER BY user_action, is_conversion;
--- FINDING: Six event types. is_conversion = 1 shows up only on purchase events (4,203 rows), and every other action is 0. No NULLs in either column. The flag marks the purchase event, not the whole session.
+-- FINDING: Six event types. is_conversion = 1 shows up only on purchase events (4,203 rows), and every other action is 0. 
+-- No NULLs in either column. The flag marks the purchase event, not the whole session.
 
 
 -- P4 | QUESTION: How many purchase events does each session have?
@@ -93,7 +94,8 @@ SELECT
     MIN(price) AS lowest_price,
     MAX(price) AS highest_price
 FROM retail_user_behaviour;
--- FINDING: Events run from 2026-01-01 08:15 UTC to 2026-05-01 07:57 UTC (about four months). No NULL prices, and prices range from 7.29 to 499.86. Spend here means spend in this window, not lifetime.
+-- FINDING: Events run from 2026-01-01 08:15 UTC to 2026-05-01 07:57 UTC (about four months).
+-- No NULL prices, and prices range from 7.29 to 499.86. Spend here means spend in this window, not lifetime.
 
 
 -- P6 | QUESTION: In a converting session, does the purchase price match the products viewed earlier?
@@ -112,7 +114,8 @@ WHERE session_id = (
     LIMIT 1
 )
 ORDER BY event_index;
--- FINDING: In session S0000003, the purchase is the last of six events and has the same product (P1816) and price (261.82) as the earlier view, click and add_to_cart events. So price is the product's listed price, and spend comes from purchase events only. There's no quantity or discount column, so the purchase price is taken as the amount paid.
+-- FINDING: In session S0000003, the purchase is the last of six events and has the same product (P1816) and price (261.82) as the earlier view, click and add_to_cart events. 
+-- So price is the product's listed price, and spend comes from purchase events only. There's no quantity or discount column, so the purchase price is taken as the amount paid.
 
 
 -- P7 | QUESTION: Is each purchase the last event of its session, and does it share a product with earlier events?
@@ -132,7 +135,8 @@ JOIN (
     GROUP BY session_id
 ) AS s ON s.session_id = p.session_id
 WHERE p.user_action = 'purchase';
--- FINDING: All 4,203 purchases are the last event of their session. Only 3,153 (75.0%) are of a product seen earlier in the same session; 1,050 (25.0%) are of a product with no earlier event. Cause not investigated, so spend uses the purchase row's own price and isn't tied back to earlier browsing.
+-- FINDING: All 4,203 purchases are the last event of their session. Only 3,153 (75.0%) are of a product seen earlier in the same session; 
+-- 1,050 (25.0%) are of a product with no earlier event. Cause not investigated, so spend uses the purchase row's own price and isn't tied back to earlier browsing.
 
 
 -- P7b | QUESTION: What do sessions look like where the purchased product was never seen earlier?
@@ -163,7 +167,7 @@ LIMIT 5;
 
 /* =====================================================================
    PART 2: THRESHOLDS
-   Pick segment cutoffs from the real distributions, not guesses.
+   Picked segment cutoffs from the real distributions, not guesses.
    ===================================================================== */
 
 -- T1 | QUESTION: How is purchase spend distributed across customers?
@@ -181,7 +185,8 @@ FROM (
     WHERE user_action = 'purchase'
     GROUP BY user_id
 ) AS customer_spend;
--- FINDING: 3,238 of 6,806 customers made at least one purchase (3,568 didn't). Spend per buyer runs from 7.29 to 1,454.22, with an average of 322.57 and a median of 312.35.
+-- FINDING: 3,238 of 6,806 customers made at least one purchase (3,568 didn't). 
+-- Spend per buyer runs from 7.29 to 1,454.22, with an average of 322.57 and a median of 312.35.
 
 
 -- T2 | QUESTION: What spend values split buyers into three equal-sized groups?
@@ -196,7 +201,8 @@ FROM (
     WHERE user_action = 'purchase'
     GROUP BY user_id
 ) AS customer_spend;
--- FINDING: The 33rd and 67th percentiles of buyer spend are 201.94 and 402.59, which cut the 3,238 buyers into roughly equal thirds. Rounded to 200 and 400 for the spend segments. These cover buyers only, so the 3,568 non-buyers are left out.
+-- FINDING: The 33rd and 67th percentiles of buyer spend are 201.94 and 402.59, which cut the 3,238 buyers into roughly equal thirds. 
+-- Rounded to 200 and 400 for the spend segments. These cover buyers only, so the 3,568 non-buyers are left out.
 
 
 -- T3 | QUESTION: How many sessions does each customer have?
@@ -212,12 +218,13 @@ FROM (
 ) AS customer_sessions
 GROUP BY sessions_per_customer
 ORDER BY sessions_per_customer;
--- FINDING: Customers have 1 to 11 sessions. 1,609 have one session, 3,545 have two or three, and 1,652 have four or more. Only one customer goes past 9. The frequency cutoffs (1, 2-3, 4+) come from this spread.
+-- FINDING: Customers have 1 to 11 sessions. 1,609 have one session, 3,545 have two or three, and 1,652 have four or more. 
+-- Only one customer goes past 9. The frequency cutoffs (1, 2-3, 4+) come from this spread.
 
 
 /* =====================================================================
    PART 3: KPIs AND ANALYSIS
-   Answer the business questions using the definitions above.
+   They answer the business questions using the definitions above.
    ===================================================================== */
 
 -- K0 | CUSTOMER PROFILE (reference, first 10 rows)
@@ -231,7 +238,8 @@ FROM retail_user_behaviour
 GROUP BY user_id
 ORDER BY user_id
 LIMIT 10;
--- FINDING: One row per customer with total sessions, converted sessions and purchase spend. In these 10 customers, converted sessions never exceed total sessions, and spend is 0 exactly when converted sessions is 0. Spend and frequency move independently (U000005: 4 sessions, 176.18 spend; U000011: 1 session, 436.70 spend).
+-- FINDING: One row per customer with total sessions, converted sessions and purchase spend. 
+-- In these 10 customers, converted sessions never exceed total sessions, and spend is 0 exactly when converted sessions is 0. Spend and frequency move independently (U000005: 4 sessions, 176.18 spend; U000011: 1 session, 436.70 spend).
 
 
 -- K1 | KPI: SPEND SEGMENT SIZE
@@ -258,7 +266,8 @@ SELECT
 FROM customer_profiles
 GROUP BY spend_segment
 ORDER BY spend_segment;
--- FINDING: 3,568 of 6,806 customers (52.42%) made no purchase. The 3,238 buyers split almost evenly: 1,058 low spenders (15.55%), 1,096 medium (16.10%) and 1,084 high (15.93%). Segments add up to all 6,806 customers.
+-- FINDING: 3,568 of 6,806 customers (52.42%) made no purchase. 
+-- The 3,238 buyers split almost evenly: 1,058 low spenders (15.55%), 1,096 medium (16.10%) and 1,084 high (15.93%). Segments add up to all 6,806 customers.
 
 
 -- K2 | KPI: FREQUENCY SEGMENT SIZE
@@ -282,7 +291,8 @@ SELECT
 FROM customer_profiles
 GROUP BY frequency_segment
 ORDER BY frequency_segment;
--- FINDING: 1,609 customers (23.64%) had one session, 3,545 (52.09%) had two or three, and 1,652 (24.27%) had four or more. Totals match the 6,806 customers and the T3 distribution.
+-- FINDING: 1,609 customers (23.64%) had one session, 3,545 (52.09%) had two or three, and 1,652 (24.27%) had four or more. 
+-- Totals match the 6,806 customers and the T3 distribution.
 
 
 -- K3 | KPI: SPEND x FREQUENCY OVERLAP
@@ -311,7 +321,8 @@ SELECT
 FROM customer_profiles
 GROUP BY spend_segment, frequency_segment
 ORDER BY spend_segment, frequency_segment;
--- FINDING: The 12 combinations add up to 6,806 customers and match K1 and K2. Frequent customers are 46.96% of high spenders (509 of 1,084), compared with 24.27% of all customers and 13.17% of non-buyers. 74 high spenders had just one session, and 470 frequent customers never bought. More sessions mean more chances to buy, so this is an observed association, not a cause.
+-- FINDING: The 12 combinations add up to 6,806 customers and match K1 and K2. 
+-- Frequent customers are 46.96% of high spenders (509 of 1,084), compared with 24.27% of all customers and 13.17% of non-buyers. 74 high spenders had just one session, and 470 frequent customers never bought. More sessions mean more chances to buy, so this is an observed association, not a cause.
 
 
 -- K4 | KPIs: SESSION CONVERSION RATE and SPEND PER CONVERTED SESSION, by frequency segment
@@ -340,7 +351,8 @@ SELECT
 FROM customer_profiles
 GROUP BY frequency_segment
 ORDER BY frequency_segment;
--- FINDING: Session conversion is about the same everywhere: 23.93% for one-time (385 of 1,609 sessions), 23.27% for occasional (2,018 of 8,672) and 23.32% for frequent (1,800 of 7,719). Spend per converted session is also close (about 248 to 250). Sessions total 18,000 and converted sessions 4,203. So frequent customers make more purchases because they have more sessions, not because each session converts better. The rate is pooled: all converted sessions over all sessions in the group.
+-- FINDING: Session conversion is about the same everywhere: 23.93% for one-time (385 of 1,609 sessions), 23.27% for occasional (2,018 of 8,672) and 23.32% for frequent (1,800 of 7,719). 
+-- Spend per converted session is also close (about 248 to 250). Sessions total 18,000 and converted sessions 4,203. So frequent customers make more purchases because they have more sessions, not because each session converts better. The rate is pooled: all converted sessions over all sessions in the group.
 
 
 -- K5 | KPI: TOP 3 SPENDERS PER BUYER SEGMENT (window function)
@@ -377,7 +389,8 @@ SELECT
 FROM ranked
 WHERE rank_in_segment <= 3
 ORDER BY spend_segment, rank_in_segment;
--- FINDING: The top spender is U003733 at 1,454.22, which matches the max buyer spend from T1. Ties show up at the edges: two low spenders tie at rank 1 (199.58) and the next is rank 3 (199.37); three medium spenders tie at rank 1 (399.73). RANK() gives ties the same rank and skips the numbers after them. Top low and medium spenders sit just under the 200 and 400 cutoffs, so their segment depends on where the line is drawn.
+-- FINDING: The top spender is U003733 at 1,454.22, which matches the max buyer spend from T1. 
+-- Ties show up at the edges: two low spenders tie at rank 1 (199.58) and the next is rank 3 (199.37); three medium spenders tie at rank 1 (399.73). RANK() gives ties the same rank and skips the numbers after them. Top low and medium spenders sit just under the 200 and 400 cutoffs, so their segment depends on where the line is drawn.
 
 
 /* =====================================================================
@@ -404,7 +417,8 @@ SELECT
      FROM retail_user_behaviour
      WHERE user_action = 'purchase') AS raw_purchase_spend
 FROM customer_profiles;
--- FINDING: Everything lines up: 6,806 customers, 18,000 sessions, 4,203 converted sessions, and 1,044,466.59 total purchase spend in both the profiles and the raw purchase rows. The profile logic doesn't drop or double-count anything.
+-- FINDING: Everything lines up: 6,806 customers, 18,000 sessions, 4,203 converted sessions, and 1,044,466.59 total purchase spend in both the profiles and the raw purchase rows. 
+-- The profile logic doesn't drop or double-count anything.
 
 
 -- V2 | QUESTION: Are the first and last days of the data partial days?
@@ -419,11 +433,13 @@ WHERE DATE(timestamp_utc) IN (
 )
 GROUP BY DATE(timestamp_utc)
 ORDER BY event_date;
--- FINDING: Yes, the edge days are partial. 2026-01-01 has 550 events (89 sessions) and 2026-05-01 has 354 events (58 sessions), versus 899 to 938 events on Jan 2-3 and 776 to 993 on Apr 29-30. So the window is about four months with partial first and last days.
+-- FINDING: Yes, the edge days are partial. 2026-01-01 has 550 events (89 sessions) and 2026-05-01 has 354 events (58 sessions), versus 899 to 938 events on Jan 2-3 and 776 to 993 on Apr 29-30. 
+-- So the window is about four months with partial first and last days.
 
 
 -- V3 | QUESTION: Does user U000002 appear anywhere in the table?
 SELECT COUNT(*) AS rows_for_u000002
 FROM retail_user_behaviour
 WHERE user_id = 'U000002';
--- FINDING: U000002 has no rows, so it isn't one of the 6,806 customers. User IDs aren't contiguous (U000010 was also missing from the first-10 profile output). "Customers" here means users who appear in the table.
+-- FINDING: U000002 has no rows, so it isn't one of the 6,806 customers. 
+--mUser IDs aren't contiguous (U000010 was also missing from the first-10 profile output). 
