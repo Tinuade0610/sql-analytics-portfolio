@@ -20,6 +20,7 @@ A SQL analysis of a retail user-behaviour event log. It builds one profile per c
 4. Do frequent customers convert better per session, or do they simply visit more?
 5. Who are the top spenders within each spend segment?
 
+
 ## Key findings
 
 | KPI | Result |
@@ -33,6 +34,7 @@ A SQL analysis of a retail user-behaviour event log. It builds one profile per c
 | Customers with at least one purchase | 3,238 (47.58%) |
 | Average / median spend per buyer | 322.57 / 312.35 |
 
+
 **Spend segments** (total purchase spend per customer)
 
 | Segment | Rule | Customers | % of customers |
@@ -42,6 +44,7 @@ A SQL analysis of a retail user-behaviour event log. It builds one profile per c
 | Medium spender | 200 to under 400 | 1,096 | 16.10% |
 | High spender | 400 or more | 1,084 | 15.93% |
 
+
 **Frequency segments** (distinct sessions per customer)
 
 | Segment | Rule | Customers | % of customers | Session conversion | Spend per converted session |
@@ -49,6 +52,7 @@ A SQL analysis of a retail user-behaviour event log. It builds one profile per c
 | One-time | 1 session | 1,609 | 23.64% | 23.93% | 250.25 |
 | Occasional | 2 to 3 sessions | 3,545 | 52.09% | 23.27% | 247.77 |
 | Frequent | 4 or more sessions | 1,652 | 24.27% | 23.32% | 248.95 |
+
 
 **Share of each spend segment that is Frequent**
 
