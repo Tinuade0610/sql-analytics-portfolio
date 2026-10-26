@@ -9,17 +9,12 @@
 --                from the untouched raw table every time.
 -- Workflow     : profile -> define -> decide -> clean -> validate
 -- Pattern      : every block is QUESTION, query, FINDING.
--- Run the whole file top to bottom in the Supabase SQL Editor.
 -- ============================================================
 
 
 -- ============================================================
 -- PART 1: PROFILE THE RAW TABLE (read-only, changes nothing)
 -- ============================================================
-
--- QUESTION: Which PostgreSQL version was this tested on?
-SELECT version();
--- FINDING: (paste your version string here after running)
 
 -- QUESTION: What does the raw data look like?
 SELECT *
