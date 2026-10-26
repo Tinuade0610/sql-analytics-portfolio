@@ -25,8 +25,8 @@ Cleaning a messy, simulated emergency department log (250 raw rows) into a trust
 
 ## Environment
 
-- Supabase (PostgreSQL). Version: *(paste the result of `SELECT version();`)*
-- The raw CSV was imported as `emergency_log_unclean` with `admission_date` kept as **text**, so the mixed date formats were preserved. *(confirm how you imported it)*
+- Supabase (PostgreSQL). 
+- The raw CSV was imported as `emergency_log_unclean` with `admission_date` kept as **text**, so the mixed date formats were preserved.
 
 ## What "clean" means (defined before fixing)
 
@@ -78,7 +78,7 @@ The raw counts of 19 and 7 include the text `'NULL'` as a value. The clean table
 - **Every `UPDATE` has a `WHERE` clause.** Each was preceded by a count of affected rows.
 - **Dates were converted in a new column first,** compared against the original text for each format, and only then swapped in.
 
-## Known limitations
+## Known limitationsl;
 
 - `RIGHT(assigned_room, 3)` works because every room number has exactly 3 digits and no value has trailing spaces. A different room scheme would need a different rule.
 - Uppercase names are a presentation choice for this project, not a claim that uppercase is more correct.
