@@ -110,7 +110,7 @@ SELECT
     COUNT(*) - COUNT(user_id)       AS null_user_id,
     COUNT(*) - COUNT(timestamp_utc) AS null_timestamp,
     COUNT(*) - COUNT(event_index)   AS null_event_index,
-[10/21/2026 1:15 AM] Atinuke Adegbola: COUNT(*) - COUNT(user_action)   AS null_user_action,
+    COUNT(*) - COUNT(user_action)   AS null_user_action,
     COUNT(*) - COUNT(category)      AS null_category,
     COUNT(*) - COUNT(price)         AS null_price,
     COUNT(*) - COUNT(channel)       AS null_channel,
